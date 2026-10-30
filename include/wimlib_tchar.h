@@ -65,8 +65,7 @@ typedef wchar_t tchar;
  * function defined ourselves. */
 #  define TSTRDUP	WCSDUP
 #  define tmkdir(path, mode) _wmkdir(path)
-#  define tstrerror_r(errnum, buf, bufsize) \
-			_wcserror_s((buf), (bufsize), (errnum))
+#  define tstrerror_r   win32_strerror_r_replacement
 #  define trename	win32_rename_replacement
 #  define tglob		win32_wglob
 #else /* _WIN32 */
