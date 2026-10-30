@@ -29,6 +29,7 @@
 #include "wimlib/win32_common.h"
 
 #include <cguid.h>
+#include <versionhelpers.h>
 
 #include "wimlib/error.h"
 #include "wimlib/threads.h"
@@ -327,18 +328,21 @@ vss_global_init_impl(void)
 		goto err;
 	}
 
+	is_old_api = !IsWindowsVersionOrGreater(5, 2, 0);
+
 	func_CreateVssBackupComponents =
 		(void *)GetProcAddress(hVssapi, "CreateVssBackupComponentsInternal");
 	if (!func_CreateVssBackupComponents) {
 		func_CreateVssBackupComponents =
-			(void *)GetProcAddress(hVssapi, "?CreateVssBackupComponents@@YGJPAPAVIVssBackupComponents@@@Z");
+			(void *)GetProcAddress(hVssapi, "?CreateVssBackupComponents@@YAJPEAPEAVIVssBackupComponents@@@Z");
 		if (!func_CreateVssBackupComponents) {
-			ERROR("CreateVssBackupComponents() not found in vssapi.dll");
-			goto err_vssapi;
+			func_CreateVssBackupComponents =
+				(void *)GetProcAddress(hVssapi, "?CreateVssBackupComponents@@YGJPAPAVIVssBackupComponents@@@Z");
+			if (!func_CreateVssBackupComponents) {
+				ERROR("CreateVssBackupComponents() not found in vssapi.dll");
+				goto err_vssapi;
+			}
 		}
-		is_old_api = true;
-	} else {
-		is_old_api = false;
 	}
 
 	func_VssFreeSnapshotProperties =
